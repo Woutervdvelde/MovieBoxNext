@@ -1,15 +1,55 @@
 console.log = (txt) => {
-  window.console.info(`MovieBoxNext| ${txt}`);
+    window.console.info(`MovieBoxNext| ${txt}`);
 };
 
-$('a[season][episode]').click(e => {userSelectedEpisode($(e.currentTarget).attr('season'), $(e.currentTarget).attr('episode'))});
+let nextEpisodeTime;
+let show = true;
+let nextSeason, nextEpisode, element, videoElement;
+
+$('a[season][episode]').click(e => {
+    userSelectedEpisode(
+        $(e.currentTarget).attr('season'),
+        $(e.currentTarget).attr('episode'))
+});
+
+const param = new URLSearchParams(window.location.search);
+if (param.get('MovieBoxNext')) {
+    if (param.get('episode'))
+        playEpisode(param.get('season'), param.get('episode'));
+    else
+        playEpisode(param.get('season'), 1)
+}
+
+function playEpisode(season, episode) {
+    $('a[season][episode]').each((i, e) => {
+        let se = $(e).attr('season');
+        let ep = $(e).attr('episode');
+
+        if (parseInt(se) === parseInt(season) && parseInt(ep) === parseInt(episode)) {
+            e.click();
+            return false;
+        }
+    });
+}
+
+//check if MovieBoxNext is in the url, if it is it means that the script tries to play the first episode of a new season
+if (window.location.href.includes("MovieBoxNext")) {
+
+}
 
 function userSelectedEpisode(season, episode) {
     console.log("User clicked on it's own");
     setNextEpisode(season, episode);
 }
 
-let nextEpisodeTime;
+function generateUrl(season, episode) {
+    let baseUrl = window.location.href;
+    baseUrl = baseUrl.substring(0, baseUrl.indexOf("&"));
+    baseUrl += `&season=${season}`;
+    baseUrl += `&episode=${episode}`;
+    baseUrl += "&MovieBoxNext=1";
+    return baseUrl;
+}
 
 chrome.storage.sync.get("time", ({time}) => {
     nextEpisodeTime = time;
@@ -46,8 +86,8 @@ function getNextEpisode(currentSeason, currentEpisode) {
         console.log("No next episode in current season found, will try and start next season");
         return {season: cs + 1, episode: 0}
     } else {
-        console.log(`Next episode found: s${cs}:e${ce+1}`);
-        return {season: cs, episode: ce+1, a: found}
+        console.log(`Next episode found: s${cs}:e${ce + 1}`);
+        return {season: cs, episode: ce + 1, a: found}
     }
 }
 
@@ -70,18 +110,19 @@ function getVideoData() {
 
 function showNextEpisodeButton() {
     try {
+        let url = generateUrl(nextSeason, nextEpisode);
         $('div[class="jw-media jw-reset"]')[0].insertAdjacentHTML('afterbegin', `<div style="
-    width: 150px;
-    height: 50px;
-    position: absolute;
-    background-color: black;
-    z-index: 100000000;
-    right: 0;
-    bottom: 100px;
-    border-radius: 15px;
-    "
-    id="MovieBoxNextEpisodeButton">
-    <button style="
+        width: 150px;
+        height: 50px;
+        position: absolute;
+        background-color: black;
+        z-index: 100000000;
+        right: 0;
+        bottom: 100px;
+        border-radius: 15px;"
+        id="MovieBoxNextEpisodeButton">
+        <a href="${url}">
+            <button style="
     display: block;
     margin-left: auto;
     margin-right: auto;
@@ -89,9 +130,11 @@ function showNextEpisodeButton() {
     /* top: 50%; */
     background: inherit;
     color: white;
-    " onclick="meow()">NEXT &gt;
-    </button>
-    </div>`)
+    ">
+                NEXT &gt;
+            </button>
+        </a>
+        </div>`)
     } catch (e) {
         setVideoElement();
     }
@@ -117,12 +160,12 @@ function setNextEpisode(se, ep) {
     element = a;
 }
 
-
-let show = true;
-let nextSeason, nextEpisode, element, videoElement;
-
 setInterval(() => {
     if (!show) return;
+
+    //url contains 'tvdetail' when a series is slected. This won't be on movies and the homescreen.
+    if (!window.location.href.includes('tvdetail'))
+        show = false;
 
     if (!nextSeason || !nextEpisode) {
         setNextEpisode();
@@ -131,14 +174,10 @@ setInterval(() => {
 
     if (!videoElement) {
         setVideoElement();
-        console.info(videoElement);
         return;
     }
-    //TODO check if video is longer than 1 hour, if so set show to false
-    const videoData = getVideoData();
 
-    //if video is longer than 70 minutes show will be set to false (current player is probably a movie not a series)
-    if (videoData.duration > 70 * 60) show = false
+    const videoData = getVideoData();
 
     if (videoData.duration - videoData.currentTime < nextEpisodeTime) {
         showNextEpisodeButton();
