@@ -13,8 +13,9 @@ $('a[season][episode]').click(e => {
 });
 
 const param = new URLSearchParams(window.location.search);
+console.info(param.get('MovieBoxNext'));
 if (param.get('MovieBoxNext')) {
-    if (param.get('episode'))
+    if (typeof param.get('episode') !== 'undefined')
         playEpisode(param.get('season'), param.get('episode'));
     else
         playEpisode(param.get('season'), 1)
@@ -30,6 +31,23 @@ function playEpisode(season, episode) {
             return false;
         }
     });
+    setTimeout(() => {
+        goFullscreen();
+    }, 1000);
+}
+
+function goFullscreen() {
+    const video = document.getElementsByTagName('video')[0];
+
+    if (!video) {
+        setTimeout(() => {goFullscreen()}, 1000);
+        return;
+    }
+
+    if (video.webkitRequestFullScreen)
+        video.webkitRequestFullScreen();
+    else
+        console.log("Unable to trigger fullscreen");
 }
 
 //check if MovieBoxNext is in the url, if it is it means that the script tries to play the first episode of a new season
@@ -84,7 +102,7 @@ function getNextEpisode(currentSeason, currentEpisode) {
 
     if (!found) {
         console.log("No next episode in current season found, will try and start next season");
-        return {season: cs + 1, episode: 0}
+        return {season: cs + 1, episode: 1}
     } else {
         console.log(`Next episode found: s${cs}:e${ce + 1}`);
         return {season: cs, episode: ce + 1, a: found}
@@ -115,7 +133,7 @@ function showNextEpisodeButton() {
         width: 150px;
         height: 50px;
         position: absolute;
-        background-color: black;
+        background-color: #1E1E1E;
         z-index: 100000000;
         right: 0;
         bottom: 100px;
@@ -127,7 +145,7 @@ function showNextEpisodeButton() {
     margin-left: auto;
     margin-right: auto;
     margin-top: 10%;
-    /* top: 50%; */
+    font-family: Helvetica;
     background: inherit;
     color: white;
     ">
@@ -163,11 +181,11 @@ function setNextEpisode(se, ep) {
 setInterval(() => {
     if (!show) return;
 
-    //url contains 'tvdetail' when a series is slected. This won't be on movies and the homescreen.
+    //url contains 'tvdetail' when a series is selected. This won't be on movies and the homescreen.
     if (!window.location.href.includes('tvdetail'))
         show = false;
 
-    if (!nextSeason || !nextEpisode) {
+    if (typeof nextSeason === 'undefined' || typeof nextEpisode === 'undefined') {
         setNextEpisode();
         return;
     }
