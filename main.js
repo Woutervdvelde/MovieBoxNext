@@ -129,7 +129,9 @@ function getVideoData() {
 function showNextEpisodeButton() {
     try {
         let url = generateUrl(nextSeason, nextEpisode);
-        $('div[class="jw-media jw-reset"]')[0].insertAdjacentHTML('afterbegin', `<div style="
+        $('div[class="jw-media jw-reset"]')[0].insertAdjacentHTML('afterbegin', `
+        <a href="${url}" id="MovieBoxNextEpisodeButton">
+        <div style="
         width: 150px;
         height: 50px;
         position: absolute;
@@ -139,7 +141,6 @@ function showNextEpisodeButton() {
         bottom: 100px;
         border-radius: 15px;"
         id="MovieBoxNextEpisodeButton">
-        <a href="${url}">
             <button style="
     display: block;
     margin-left: auto;
@@ -151,8 +152,7 @@ function showNextEpisodeButton() {
     ">
                 NEXT &gt;
             </button>
-        </a>
-        </div>`)
+        </div></a>`)
     } catch (e) {
         setVideoElement();
     }
