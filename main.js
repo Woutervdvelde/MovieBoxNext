@@ -2,9 +2,15 @@ console.log = (txt) => {
     window.console.info(`MovieBoxNext| ${txt}`);
 };
 
+chrome.storage.onChanged.addListener((changes, namespace) => {
+    if (changes.time)
+        nextEpisodeTime = changes.time.newValue;
+})
+
 let nextEpisodeTime;
 let show = true;
 let nextSeason, nextEpisode, element, videoElement;
+
 
 $('a[season][episode]').click(e => {
     userSelectedEpisode(
@@ -13,13 +19,11 @@ $('a[season][episode]').click(e => {
 });
 
 const param = new URLSearchParams(window.location.search);
-console.info(param.get('MovieBoxNext'));
-if (param.get('MovieBoxNext')) {
+if (param.get('MovieBoxNext'))
     if (typeof param.get('episode') !== 'undefined')
         playEpisode(param.get('season'), param.get('episode'));
     else
         playEpisode(param.get('season'), 1)
-}
 
 function playEpisode(season, episode) {
     $('a[season][episode]').each((i, e) => {
@@ -40,7 +44,7 @@ function goFullscreen() {
     const video = document.getElementsByTagName('video')[0];
 
     if (!video) {
-        setTimeout(() => {goFullscreen()}, 1000);
+        setTimeout(() => { goFullscreen() }, 1000);
         return;
     }
 
@@ -69,12 +73,12 @@ function generateUrl(season, episode) {
     return baseUrl;
 }
 
-chrome.storage.sync.get("time", ({time}) => {
+chrome.storage.sync.get("time", ({ time }) => {
     nextEpisodeTime = time;
 })
 
 function getShowInfo() {
-    const defaultResponse = {s: "1", e: "1"}
+    const defaultResponse = { s: "1", e: "1" }
 
     const url = $('.play_btn').first().attr('play');
     const data = /.*season=(?<season>\d*)&episode=(?<episode>\d*)/.exec(url);
@@ -82,7 +86,7 @@ function getShowInfo() {
     if (!data) return defaultResponse;
 
     if (data.groups.episode && data.groups.season)
-        return {s: data.groups.season, e: data.groups.episode};
+        return { s: data.groups.season, e: data.groups.episode };
 
     return defaultResponse;
 }
@@ -102,10 +106,10 @@ function getNextEpisode(currentSeason, currentEpisode) {
 
     if (!found) {
         console.log("No next episode in current season found, will try and start next season");
-        return {season: cs + 1, episode: 1}
+        return { season: cs + 1, episode: 1 }
     } else {
         console.log(`Next episode found: s${cs}:e${ce + 1}`);
-        return {season: cs, episode: ce + 1, a: found}
+        return { season: cs, episode: ce + 1, a: found }
     }
 }
 
@@ -120,13 +124,14 @@ function getVideoData() {
 
         const duration = videoElement.duration;
         const currentTime = videoElement.currentTime;
-        return {duration: duration, currentTime: currentTime};
+        return { duration: duration, currentTime: currentTime };
     } catch (e) {
         setVideoElement();
     }
 }
 
 function showNextEpisodeButton() {
+    console.log("Displaying next button");
     try {
         let url = generateUrl(nextSeason, nextEpisode);
         $('div[class="jw-media jw-reset"]')[0].insertAdjacentHTML('afterbegin', `
@@ -159,12 +164,13 @@ function showNextEpisodeButton() {
 }
 
 function hideNextEpisodeButton() {
-    $("#MovieBoxNextEpisodeButton").remove();
+    if ($("#MovieBoxNextEpisodeButton").length)
+        $("#MovieBoxNextEpisodeButton").remove();
 }
 
 function setNextEpisode(se, ep) {
     if (!se && !ep) {
-        let {s, e} = getShowInfo();
+        let { s, e } = getShowInfo();
         se = s;
         ep = e;
     }
@@ -172,7 +178,7 @@ function setNextEpisode(se, ep) {
     let s = se;
     let e = ep;
 
-    let {season, episode, a} = getNextEpisode(s, e);
+    let { season, episode, a } = getNextEpisode(s, e);
     nextSeason = season;
     nextEpisode = episode;
     element = a;
@@ -182,7 +188,7 @@ setInterval(() => {
     if (!show) return;
 
     //url contains 'tvdetail' when a series is selected. This won't be on movies and the homescreen.
-    if (!window.location.href.includes('tvdetail'))
+    if (!window.location.href.includes('tvshow'))
         show = false;
 
     if (typeof nextSeason === 'undefined' || typeof nextEpisode === 'undefined') {

@@ -4,16 +4,10 @@
      changeTime.value = time;
  })
 
+
 changeTime.addEventListener('change', async () => {
-    let [tab] = await chrome.tabs.query({active: true, currentWindow: true});
-
-    chrome.scripting.executeScript({
-        target: {tabId: tab.id},
-        function: setPageTime,
-    })
+    const time = changeTime.value;
+    chrome.storage.sync.set({time: time}, () => {
+        console.log(`updated time to ${time}`)
+    });
 })
-
-
- function setPageTime() {
-    document.body.style.backgroundColor = "black";
- }
