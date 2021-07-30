@@ -61,14 +61,15 @@ if (window.location.href.includes("MovieBoxNext")) {
 
 function userSelectedEpisode(season, episode) {
     console.log("User clicked on it's own");
+    show = true;
     setNextEpisode(season, episode);
 }
 
 function generateUrl(season, episode) {
     let baseUrl = window.location.href;
-    baseUrl = baseUrl.substring(0, baseUrl.indexOf("&"));
-    baseUrl += `&season=${season}`;
-    baseUrl += `&episode=${episode}`;
+    baseUrl = baseUrl.substring(0, baseUrl.indexOf("?"));
+    baseUrl += `${baseUrl.includes("?") ? "&" : "?"}season=${season}`;
+    baseUrl += `&episode=${episode ? episode : 1}`;
     baseUrl += "&MovieBoxNext=1";
     return baseUrl;
 }
@@ -91,25 +92,46 @@ function getShowInfo() {
     return defaultResponse;
 }
 
-function getNextEpisode(currentSeason, currentEpisode) {
-    let found = false;
-    const cs = parseInt(currentSeason);
-    const ce = parseInt(currentEpisode);
+async function getNextEpisode(currentSeason, currentEpisode) {
+    return new Promise(async resolve => {
+        let found = false;
+        const cs = parseInt(currentSeason);
+        const ce = parseInt(currentEpisode);
+    
+        $('a[season][episode]').each((i, a) => {
+            const s = parseInt($(a).attr('season'));
+            const e = parseInt($(a).attr('episode'));
+    
+            if (s === cs && e === ce + 1)
+                found = a;
+        });
+    
+        if (!found) {
+            const episodesInSeason = await checkForEpisodes(cs + 1);
+            if (episodesInSeason)
+                resolve({ season: cs + 1, episode: 1 });
+            else {
+                show = false;
+                resolve({ season: undefined, episode: undefined });
+            }
+        } else {
+            console.log(`Next episode found: s${cs}:e${ce + 1}`);
+            resolve({ season: cs, episode: ce + 1, a: found });
+        }
+    })
+}
 
-    $('a[season][episode]').each((i, a) => {
-        const s = parseInt($(a).attr('season'));
-        const e = parseInt($(a).attr('episode'));
-
-        if (s === cs && e === ce + 1)
-            found = a;
-    });
-
-    if (!found) {
-        console.log("No next episode in current season found, will try and start next season");
-        return { season: cs + 1, episode: 1 }
-    } else {
-        console.log(`Next episode found: s${cs}:e${ce + 1}`);
-        return { season: cs, episode: ce + 1, a: found }
+async function checkForEpisodes(season) {
+    try {
+        const fetched = await fetch(generateUrl(season));
+        const text = await fetched.text();
+        const episodes = text.match(/class="tv_episode"/gm);
+        if (!episodes)
+            return false;
+        else
+            return true;
+    } catch (e) {
+        return false;
     }
 }
 
@@ -131,33 +153,33 @@ function getVideoData() {
 }
 
 function showNextEpisodeButton() {
-    console.log("Displaying next button");
     try {
         let url = generateUrl(nextSeason, nextEpisode);
         $('div[class="jw-media jw-reset"]')[0].insertAdjacentHTML('afterbegin', `
         <a href="${url}" id="MovieBoxNextEpisodeButton">
-        <div style="
-        width: 150px;
-        height: 50px;
-        position: absolute;
-        background-color: #1E1E1E;
-        z-index: 100000000;
-        right: 0;
-        bottom: 100px;
-        border-radius: 15px;"
-        id="MovieBoxNextEpisodeButton">
-            <button style="
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: 10%;
-    font-family: Helvetica;
-    background: inherit;
-    color: white;
-    ">
-                NEXT &gt;
-            </button>
-        </div></a>`)
+            <div style="
+                width: 150px;
+                height: 50px;
+                position: absolute;
+                background-color: #1E1E1E;
+                z-index: 100000000;
+                right: 0;
+                bottom: 100px;
+                border-radius: 15px;"
+                id="MovieBoxNextEpisodeButton">
+                <button style="
+                    display: block;
+                    margin-left: auto;
+                    margin-right: auto;
+                    margin-top: 10%;
+                    font-family: Helvetica;
+                    background: inherit;
+                    color: white;
+                    ">
+                    NEXT &gt;
+                </button>
+            </div>
+        </a>`)
     } catch (e) {
         setVideoElement();
     }
@@ -168,7 +190,7 @@ function hideNextEpisodeButton() {
         $("#MovieBoxNextEpisodeButton").remove();
 }
 
-function setNextEpisode(se, ep) {
+async function setNextEpisode(se, ep) {
     if (!se && !ep) {
         let { s, e } = getShowInfo();
         se = s;
@@ -178,7 +200,7 @@ function setNextEpisode(se, ep) {
     let s = se;
     let e = ep;
 
-    let { season, episode, a } = getNextEpisode(s, e);
+    let { season, episode, a } = await getNextEpisode(s, e);
     nextSeason = season;
     nextEpisode = episode;
     element = a;
