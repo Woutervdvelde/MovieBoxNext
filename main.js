@@ -35,32 +35,10 @@ function playEpisode(season, episode) {
             return false;
         }
     });
-    setTimeout(() => {
-        goFullscreen();
-    }, 1000);
-}
-
-function goFullscreen() {
-    const video = document.getElementsByTagName('video')[0];
-
-    if (!video) {
-        setTimeout(() => { goFullscreen() }, 1000);
-        return;
-    }
-
-    if (video.webkitRequestFullScreen)
-        video.webkitRequestFullScreen();
-    else
-        console.log("Unable to trigger fullscreen");
-}
-
-//check if MovieBoxNext is in the url, if it is it means that the script tries to play the first episode of a new season
-if (window.location.href.includes("MovieBoxNext")) {
-
 }
 
 function userSelectedEpisode(season, episode) {
-    console.log("User clicked on it's own");
+    console.log(`User clicked on an episode | s${season}:e${episode}`);
     show = true;
     setNextEpisode(season, episode);
 }
@@ -152,12 +130,17 @@ function getVideoData() {
     }
 }
 
+const onClickNextEpisode = () => {
+    console.log("wohooooo")
+}
+
 function showNextEpisodeButton() {
     try {
         let url = generateUrl(nextSeason, nextEpisode);
         $('div[class="jw-media jw-reset"]')[0].insertAdjacentHTML('afterbegin', `
         <a href="${url}" id="MovieBoxNextEpisodeButton">
             <div style="
+                cursor: pointer;
                 width: 150px;
                 height: 50px;
                 position: absolute;
@@ -168,6 +151,7 @@ function showNextEpisodeButton() {
                 border-radius: 15px;"
                 id="MovieBoxNextEpisodeButton">
                 <button style="
+                    cursor: inherit;
                     display: block;
                     margin-left: auto;
                     margin-right: auto;
