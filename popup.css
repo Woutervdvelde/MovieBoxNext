@@ -1,13 +1,61 @@
-button {
-    height: 30px;
-    width: 30px;
-    outline: none;
-    margin: 10px;
-    border: none;
-    border-radius: 2px;
+:root {
+    --bg: hsl(0, 0%, 0%);
+    --bg-light: hsl(0, 0%, 12%);
+    --text-light: hsl(0, 0%, 100%);
+    --accent-color: hsl(49, 100%, 64%);
 }
 
-button.current {
-    box-shadow: 0 0 0 2px white,
-    0 0 0 4px black;
+label, h1, h2, h3, h4, h5, p, button {
+    font-family: Helvetica, Arial, sans-serif;
+    font-weight: 500;
+    color: var(--text-light);
+}
+
+span {
+    font-weight: 700;
+}
+
+body {
+    background-color: var(--bg);
+}
+
+input {
+    border-radius: .1rem;
+}
+
+.banner {
+    display: flex;
+    justify-content: center;
+}
+
+.timeInput {
+    display: flex;
+    margin-top: .5rem;
+}
+
+.timeInput > p {
+    margin-top: .1rem;
+    margin-left: .5rem;
+}
+
+.saveContainer {
+    margin-top: .5rem;
+}
+
+.saveButton {
+    width: 100%;
+    padding: .25rem 0;
+    border: none;
+    background-color: var(--bg-light);
+    transition: all .1s linear;
+}
+
+.saveButton:hover {
+    color: var(--bg);
+    background-color: var(--accent-color);
+}
+
+.saveButton:active {
+    color: var(--text-light);
+    background-color: var(--bg);
 }
