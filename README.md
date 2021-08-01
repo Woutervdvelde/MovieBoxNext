@@ -2,11 +2,11 @@
 
 ## MovieBoxNext
 
-MovieBoxNext is a chrome extension that shows the next button (as on mobile) at the end of an episode. By pressing this button you'll be automatically redirected and the next episode will load.
+MovieBoxNext is a chrome extension that shows the next button (as seen on mobile) at the end of an episode. By pressing this button you'll be automatically redirected and the next episode will load.
 
 ## Disclaimer
 
-I do not condone the illegal watching of movies and series in any way. This project has been created for educational purposes only. The extension has been tested on series that are free to the public. Do not use this extension if you're plannig to illegally watch series.
+I do not condone the watching of movies and series illegally in any way. This project has been created for educational purposes only. The extension has been tested on series that are free to the public. Do not use this extension if you're plannig to illegally watch series.
 
 ## Install
 
