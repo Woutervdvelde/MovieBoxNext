@@ -1,0 +1,32 @@
+:root {
+    --MBN_bg: hsl(0, 0%, 0%);
+    --MBN_bg-light: hsl(0, 0%, 12%);
+    --MBN_text-light: hsl(0, 0%, 100%);
+    --MBN_accent-color: hsl(49, 100%, 64%);
+}
+
+.MovieBoxNext_Button_Container {
+    cursor: pointer;
+    width: 150px;
+    height: 50px;
+    position: absolute;
+    z-index: 100000000;
+    right: 0;
+    bottom: 100px;
+    border-radius: 15px;
+    background: linear-gradient(to right, var(--MBN_accent-color) 50%, var(--MBN_bg-light) 50%);
+    background-size: 200% 100%;
+    background-position: right bottom;
+    transition: all 5s linear;
+}
+
+.MovieBoxNext_Button {
+    cursor: inherit;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 10%;
+    font-family: Helvetica;
+    background: transparent;
+    color: white;
+}

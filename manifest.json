@@ -1,7 +1,7 @@
 {
   "name": "MovieBox Next Episode",
   "description": "Adds the 'next episode' button in browser for MovieBox series",
-  "version": "1.0",
+  "version": "1.0.1",
   "manifest_version": 3,
   "content_security_policy": {
     "script-src": "self",
@@ -16,6 +16,9 @@
       "matches": [
         "*://www.movieboxpro.app/*",
         "*://movieboxpro.app/*"
+      ],
+      "css": [
+        "/styles/main.css"
       ],
       "js": [
         "/include/jquery-3.6.0.min.js",
