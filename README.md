@@ -22,8 +22,9 @@ How to install this extension:
 
 1. Download and unpack this repo
 2. Click on the extension icon (puzzle piece) > Manage extensions
-3. At the top left press "Load unpacked"
-4. Select the folder you just unpacked
+3. Make sure "Developer mode" is turned on (top right)
+4. At the top left press "Load unpacked"
+5. Select the folder you just unpacked
 
 ## Usage
 
