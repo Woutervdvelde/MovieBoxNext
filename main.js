@@ -1,10 +1,19 @@
 let nextEpisodeTime;
 let show = true;
-let nextSeason, nextEpisode, element, videoElement;
+let element, videoElement;
+const showInfo = {
+    nextEpisode: undefined,
+    nextSeason: undefined,
+    tid: undefined
+}
 
 console.log = (txt) => {
     window.console.info(`MovieBoxNext| ${txt}`);
 };
+
+document.playVideo = (url) => {
+    console.log(url);
+}
 
 // Requests the time left before the button should show, set by the user.
 chrome.storage.sync.get("time", ({ time }) => {
@@ -23,6 +32,13 @@ $('a[season][episode]').click(e => {
         $(e.currentTarget).attr('season'),
         $(e.currentTarget).attr('episode'))
 });
+
+
+// Requiring show ID, moviebox devs called it tid
+const URL = window.location.href;
+const URLsearch = /.*\/(?<tid>\d+)/.exec(URL);
+if (URLsearch)
+    showInfo.tid = URLsearch.groups.tid;
 
 // If the URL has 'MovieBoxNext' in it, it will play the requested episode. This url has been generated earlier when the next button is pressed by the user.
 const param = new URLSearchParams(window.location.search);
@@ -47,6 +63,46 @@ function playEpisode(season, episode) {
             return false;
         }
     });
+}
+
+function playNextEpisode() {
+    //https://developer.chrome.com/docs/extensions/reference/scripting/#runtime-functions
+    //Look if you can access the jwplayer() this way
+    $.ajax({
+        type: 'POST',
+        url: "/index/index/tv_file",
+        dataType: 'json',
+        data: {tid: showInfo.tid, season: showInfo.nextSeason, episode: showInfo.nextEpisode},
+        success: (data) => {
+            if (data.code !== 1) return showFailedToLoad();
+
+            $("#file_list").html(data['data']['list']);
+            if ($('.sidebarbg2 ul li').length < 1)
+                return showFailedToLoad();
+
+            const oss_download_url = $($('.sidebarbg2 ul li')[0]).attr('oss_download_url');
+            if (oss_download_url.length > 0)
+                $.ajax({
+                    type : 'POST',
+                    url : oss_download_url,
+                    dataType : 'text',
+                    success: (data) => {
+                        console.info(data);
+                        const regex = new RegExp(`(?<file>https:\\\/\\\/[a-zA-Z0-9_.-]+\\\/[a-zA-Z\\\/\d_\.]+\?KEY1=[a-zA-Z\d&=_-]+)`);
+                        // const search = regex.exec(data);
+                        const search = /(?<file>https:\\\/\\\/[a-zA-Z0-9_.-]+\\\/[a-zA-Z\\\/\d_\.]+\?KEY1=[a-zA-Z\d&=_-]+)/.exec(data);
+                        console.info(search);
+                        $($("video")[0]).attr("src", search.groups.file);
+                    },
+                    error: () => {
+                        showFailedToLoad();
+                    }
+                });
+        },
+        error: () => {
+            showFailedToLoad();
+        }
+    })
 }
 
 /**
@@ -177,19 +233,22 @@ function getVideoData() {
 function showNextEpisodeButton() {
     if ($("#MovieBoxNextEpisodeButton").length) return;
     try {
-        let url = generateUrl(nextSeason, nextEpisode);
+        let url = generateUrl(showInfo.nextSeason, showInfo.nextEpisode);
         $('div[class="jw-media jw-reset"]')[0].insertAdjacentHTML('afterbegin', `
-        <a href="${url}" id="MovieBoxNextEpisodeButton">
             <div class="MovieBoxNext_Button_Container"
                 id="MovieBoxNextEpisodeButton">
                 <button class="MovieBoxNext_Button">
                     NEXT &gt;
                 </button>
-            </div>
-        </a>`)
+            </div>`)
+        $($(".MovieBoxNext_Button_Container")[0]).click(playNextEpisode);
     } catch (e) {
         setVideoElement();
     }
+}
+
+function showFailedToLoad() {
+    alert("MovieBoxNext failed to load the next episode");
 }
 
 // Hides the next button if being displayed.
@@ -215,8 +274,8 @@ async function setNextEpisode(se, ep) {
     let e = ep;
 
     let { season, episode, a } = await getNextEpisode(s, e);
-    nextSeason = season;
-    nextEpisode = episode;
+    showInfo.nextSeason = season;
+    showInfo.nextEpisode = episode;
     element = a;
 }
 
@@ -231,7 +290,7 @@ setInterval(() => {
     if (!window.location.href.includes('tvshow'))
         show = false;
 
-    if (typeof nextSeason === 'undefined' || typeof nextEpisode === 'undefined') {
+    if (typeof showInfo.nextSeason === 'undefined' || typeof showInfo.nextEpisode === 'undefined') {
         setNextEpisode();
         return;
     }
